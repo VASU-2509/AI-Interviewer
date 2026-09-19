@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  createdAt DateTime @default(now())
+
+  profile   Profile?
+}
+
+model Profile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
+  targetRole String?
+  createdAt  DateTime @default(now())
+}
+model Interview {
+  id           String    @id @default(cuid())
+  userId       String
+  targetRole   String
+  topic        String
+  difficulty   String    @default("MEDIUM")
+  maxQuestions Int       @default(8)
+  status       String    @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+  
+  questions    Question[]
+  report Report?
+}
+
+model Question {
+  id            String    @id @default(cuid())
+  interviewId   String
+  interview     Interview @relation(fields: [interviewId], references: [id])
+  text          String
+  topic         String
+  difficulty    String
+  order         Int
+  createdAt     DateTime  @default(now())
+
+  answer        Answer?
+}
+
+model Answer {
+  id            String    @id @default(cuid())
+  questionId    String    @unique
+  question      Question  @relation(fields: [questionId], references: [id])
+  text          String
+  createdAt     DateTime  @default(now())
+
+  evaluation    Evaluation?
+}
+
+model Evaluation {
+  id               String   @id @default(cuid())
+  answerId         String   @unique
+  answer           Answer   @relation(fields: [answerId], references: [id])
+  correctness      Int
+  completeness     Int
+  technicalDepth   Int
+  clarity          Int
+  overallScore     Int
+  strengths        String[]
+  weaknesses       String[]
+  missingConcepts  String[]
+  nextAction       String   // FOLLOW_UP | INCREASE_DIFFICULTY | DECREASE_DIFFICULTY | CHANGE_TOPIC | END
+  createdAt        DateTime @default(now())
+}
+
+model Resume {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  fileName      String
+  extractedText String
+  createdAt     DateTime @default(now())
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  interviewId     String   @unique
+  interview       Interview @relation(fields: [interviewId], references: [id])
+  overallScore    Int
+  strengths       String[]
+  weaknesses      String[]
+  studyPlan       Json
+  createdAt       DateTime @default(now())
+}
+
+model LlmCallLog {
+  id             String   @id @default(cuid())
+  purpose        String   // "generate_question" | "evaluate_answer" | "generate_report"
+  model          String
+  promptTokens   Int
+  completionTokens Int
+  latencyMs      Int
+  succeeded      Boolean
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+}
