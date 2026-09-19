@@ -2,12 +2,15 @@
 
 An adaptive AI-powered mock interview platform. Instead of asking a fixed list of questions, it evaluates each answer in real time and decides what to do next — ask a targeted follow-up, raise or lower difficulty, or move on — the way a real interviewer would.
 
-**[Live demo]ai-interviewer-eta-three.vercel.app/**
+**[Live demo](https://ai-interviewer-eta-three.vercel.app/)**
 
 ## What makes this different
 
 Most AI interview tools are a thin wrapper around a chat model. This one is a stateful agent with an explicit decision engine:
+
+```
 Question → Candidate Answer → Structured Evaluation → Decision → Next Action → Repeat
+```
 
 Every answer is scored on correctness, completeness, technical depth, and clarity via a structured (JSON-schema-enforced) LLM call — never free-form text parsing. The evaluation feeds a rule-based decision function that adjusts difficulty, generates a context-aware follow-up, or ends the interview, and every step is logged for observability.
 
@@ -31,16 +34,19 @@ Every answer is scored on correctness, completeness, technical depth, and clarit
 - **Deployment:** Vercel
 
 ## Architecture
+
+```
 Next.js UI
-↓
+    ↓
 API Routes
-↓
+    ↓
 Interview Engine (question generation, evaluation, decision logic)
-↓ ↓ ↓
-Skills Resume Report
-Registry Grounding Generator
-↓
+    ↓        ↓            ↓
+Skills   Resume       Report
+Registry Grounding    Generator
+    ↓
 PostgreSQL (Prisma)
+```
 
 The interview engine is a hand-rolled state machine rather than a heavier agent framework — the workflow is a bounded set of transitions (follow-up, harder, easier, end), which doesn't need graph-based orchestration to reason about correctly, and is easier to unit test as a result.
 
